@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Duty Belt Trainer", layout="centered", initial_sidebar_state="collapsed")
-st.title("Duty Belt Trainer")
+st.title("🦺 Duty Belt Trainer")
 
 options_container = st.container()
 
@@ -12,11 +12,10 @@ with options_container:
         min_delay = st.slider("Min delay (seconds)", 1, 10, 1)
         max_delay = st.slider("Max delay (seconds)", min_delay, 10, 4)
         countdown = st.slider("Countdown seconds before word", 1, 10, 3)
-        fullscreen = st.checkbox("Enable Fullscreen Mode", value=False)
+        fullscreen = st.checkbox("Enable Fullscreen Mode", value=True)  # Default true for fullscreen effect
         start_training = st.form_submit_button("Start Training")
 
 if start_training:
-    # Hide the options form immediately
     options_container.empty()
 
     words = [w.strip() for w in words_input.split(",") if w.strip()]
@@ -35,52 +34,70 @@ if start_training:
 
         components.html(f"""
         <style>
-            body {{
+            html, body {{
+                margin: 0;
+                padding: 0;
+                height: 100%;
                 background: #121212;
                 color: #eee;
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                 display: flex;
                 flex-direction: column;
-                align-items: center;
                 justify-content: center;
-                height: 100vh;
-                margin: 0;
+                align-items: center;
+                overflow: hidden;
+                user-select: none;
             }}
             #countdown {{
-                font-size: 3rem;
-                margin-top: 1rem;
+                font-size: 15vw;
+                font-weight: 600;
                 color: #ffa500;
+                text-align: center;
+                line-height: 1;
+                margin: 0;
             }}
             #word {{
-                font-size: 5rem;
-                margin-top: 1rem;
+                font-size: 20vw;
+                font-weight: 900;
                 color: #00ffcc;
-                font-weight: bold;
-                text-shadow: 0 0 10px #00ffcc;
+                text-align: center;
+                line-height: 1;
+                margin: 0;
+                text-shadow: 0 0 30px #00ffcc;
             }}
-            button {{
-                background: #0078d7;
+            #status {{
+                position: fixed;
+                top: 10px;
+                width: 100%;
+                text-align: center;
+                font-size: 2vw;
+                color: #888;
+                user-select: text;
+            }}
+            #stopBtn {{
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: #d9534f;
                 border: none;
-                padding: 1rem 2rem;
-                margin-top: 2rem;
-                font-size: 1.5rem;
-                border-radius: 8px;
+                padding: 15px 30px;
+                font-size: 3vw;
+                border-radius: 10px;
                 color: white;
                 cursor: pointer;
+                user-select: none;
+                z-index: 10;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.4);
                 transition: background-color 0.3s ease;
             }}
-            button:hover {{
-                background: #005a9e;
+            #stopBtn:hover {{
+                background: #c9302c;
             }}
         </style>
-        <div>
-            <!-- Hide start button by default because training already started -->
-            <button id="startBtn" style="display:none;">▶️ Start Training</button>
-            <button id="stopBtn">⏹ Stop</button>
-            <div id="status" style="margin-top: 1rem; font-size: 1.5rem;">🔊 Training started...</div>
-            <div id="countdown"></div>
-            <div id="word"></div>
-        </div>
+        <div id="status">🔊 Training started...</div>
+        <div id="countdown"></div>
+        <div id="word"></div>
+        <button id="stopBtn">⏹ Stop</button>
 
         <script>
             const words = {word_list_js};
@@ -93,6 +110,9 @@ if start_training:
 
             {fullscreen_js}
 
+            // Automatically request fullscreen on start if enabled
+            {"toggleFullscreen();" if fullscreen else ""}
+
             function speakWord(text) {{
                 speechSynthesis.cancel();
                 speechSynthesisUtterance = new SpeechSynthesisUtterance(text);
@@ -103,44 +123,3 @@ if start_training:
 
             async function trainingLoop() {{
                 while (running) {{
-                    const delay = Math.random() * (maxDelay - minDelay) + minDelay;
-                    await new Promise(r => setTimeout(r, delay));
-
-                    for (let i = countdownTime; i > 0; i--) {{
-                        if (!running) return;
-                        document.getElementById("countdown").textContent = "⏳ Get ready: " + i;
-                        document.getElementById("word").textContent = "";
-                        await new Promise(r => setTimeout(r, 1000));
-                    }}
-
-                    if (!running) return;
-                    const word = words[Math.floor(Math.random() * words.length)];
-                    document.getElementById("countdown").textContent = "";
-                    document.getElementById("word").textContent = "🔊 " + word;
-                    speakWord(word);
-                }}
-            }}
-
-            const startBtn = document.getElementById("startBtn");
-            const stopBtn = document.getElementById("stopBtn");
-            const status = document.getElementById("status");
-
-            stopBtn.onclick = () => {{
-                running = false;
-                speechSynthesis.cancel();
-                status.textContent = "⏹ Training stopped.";
-                startBtn.style.display = "inline-block";
-                stopBtn.style.display = "none";
-                document.getElementById("countdown").textContent = "";
-                document.getElementById("word").textContent = "";
-                if (document.fullscreenElement) {{
-                    document.exitFullscreen();
-                }}
-            }};
-
-            { "toggleFullscreen();" if fullscreen else "" }
-
-            // Start the training loop immediately
-            trainingLoop();
-        </script>
-        """, height=500)
