@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Duty Belt Trainer", layout="centered", initial_sidebar_state="collapsed")
-st.title("🦺 Duty Belt Trainer")
+st.title("Duty Belt Trainer")
 
 if "running" not in st.session_state:
     st.session_state.running = False
@@ -99,7 +99,7 @@ else:
         <div id="status">🔊 Training started...</div>
         <div id="countdown"></div>
         <div id="word"></div>
-        <button id="restart">🔁 Restart Training</button>
+        <button id="restart">To Stop Refresh The Page</button>
 
         <script>
             const words = {word_list_js};
