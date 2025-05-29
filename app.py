@@ -4,7 +4,6 @@ import streamlit.components.v1 as components
 st.set_page_config(page_title="Duty Belt Trainer", layout="centered", initial_sidebar_state="collapsed")
 st.title("🦺 Duty Belt Trainer")
 
-# Initialize session state for running
 if "running" not in st.session_state:
     st.session_state.running = False
 
@@ -15,7 +14,6 @@ def stop_training():
     st.session_state.running = False
 
 if not st.session_state.running:
-    # Show options form only when NOT running
     with st.form("settings_form"):
         words_input = st.text_input("Enter words (comma-separated):", "Gun, Taser, Flashlight, Handcuffs, OC Spray, Baton")
         min_delay = st.slider("Min delay (seconds)", 1, 10, 1)
@@ -24,23 +22,15 @@ if not st.session_state.running:
         fullscreen = st.checkbox("Enable Fullscreen Mode", value=True)
         start_training_btn = st.form_submit_button("Start Training", on_click=start_training)
 
-else:
-    # Training mode - hide options, show training UI only
-    # Use stored values from session state or defaults
-    words_input = st.session_state.get("words_input", "Gun, Taser, Flashlight, Handcuffs, OC Spray, Baton")
-    min_delay = st.session_state.get("min_delay", 1)
-    max_delay = st.session_state.get("max_delay", 4)
-    countdown = st.session_state.get("countdown", 3)
-    fullscreen = st.session_state.get("fullscreen", True)
-
-    # Save current settings in session state for next round
+    # Save inputs in session_state for use during training
     st.session_state.words_input = words_input
     st.session_state.min_delay = min_delay
     st.session_state.max_delay = max_delay
     st.session_state.countdown = countdown
     st.session_state.fullscreen = fullscreen
 
-    words = [w.strip() for w in words_input.split(",") if w.strip()]
+else:
+    words = [w.strip() for w in st.session_state.words_input.split(",") if w.strip()]
     if not words:
         st.error("Please enter at least one word.")
     else:
@@ -52,7 +42,7 @@ else:
                 document.documentElement.requestFullscreen().catch((e) => console.log(e));
             }
         }
-        """ if fullscreen else ""
+        """ if st.session_state.fullscreen else ""
 
         components.html(f"""
         <style>
@@ -96,44 +86,24 @@ else:
                 color: #888;
                 user-select: text;
             }}
-            #stopBtn {{
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                background: #d9534f;
-                border: none;
-                padding: 15px 30px;
-                font-size: 3vw;
-                border-radius: 10px;
-                color: white;
-                cursor: pointer;
-                user-select: none;
-                z-index: 10;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-                transition: background-color 0.3s ease;
-            }}
-            #stopBtn:hover {{
-                background: #c9302c;
-            }}
         </style>
         <div id="status">🔊 Training started...</div>
         <div id="countdown"></div>
         <div id="word"></div>
-        <button id="stopBtn">⏹ Stop</button>
 
         <script>
             const words = {word_list_js};
-            const minDelay = {min_delay} * 1000;
-            const maxDelay = {max_delay} * 1000;
-            const countdownTime = {countdown};
+            const minDelay = {st.session_state.min_delay} * 1000;
+            const maxDelay = {st.session_state.max_delay} * 1000;
+            const countdownTime = {st.session_state.countdown};
 
             let running = true;
             let speechSynthesisUtterance;
 
             {fullscreen_js}
 
-            // Automatically request fullscreen on start if enabled
-            {"toggleFullscreen();" if fullscreen else ""}
+            // Request fullscreen if enabled
+            {"toggleFullscreen();" if st.session_state.fullscreen else ""}
 
             function speakWord(text) {{
                 speechSynthesis.cancel();
@@ -163,24 +133,19 @@ else:
                 }}
             }}
 
-            const stopBtn = document.getElementById("stopBtn");
-            const status = document.getElementById("status");
-
-            stopBtn.onclick = () => {{
-                running = false;
-                speechSynthesis.cancel();
-                status.textContent = "⏹ Training stopped.";
-                document.getElementById("countdown").textContent = "";
-                document.getElementById("word").textContent = "";
-                if (document.fullscreenElement) {{
-                    document.exitFullscreen();
-                }}
-                // Tell Streamlit to stop training (refresh)
-                fetch("/?st_session_state=%7B%22running%22%3Afalse%7D").then(() => {{
-                    window.location.reload();
-                }});
-            }};
-
             trainingLoop();
         </script>
         """, height=700)
+
+    # Streamlit stop button below the component to stop training and revert UI
+    if st.button("⏹ Stop Training"):
+        # Exit fullscreen via JS by injecting small component
+        components.html("""
+        <script>
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        }
+        </script>
+        """)
+        st.session_state.running = False
+        st.experimental_rerun()
