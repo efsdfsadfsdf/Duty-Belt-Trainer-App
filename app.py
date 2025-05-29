@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Duty Belt Trainer", layout="centered", initial_sidebar_state="collapsed")
-st.title("🦺 Duty Belt Trainer")
+st.title("Duty Belt Trainer")
 
 options_container = st.container()
 
