@@ -13,9 +13,9 @@ with st.form("settings_form"):
 
 if start:
     words = [w.strip() for w in words_input.split(",") if w.strip()]
-    word_list = str(words).replace("'", '"')  # safe for JS
+    word_list = str(words).replace("'", "\\\"")  # escape quotes
 
-    components.html(f"""
+    components.html(f'''
     <div style="text-align: center; font-size: 24px; padding: 20px;">
         <button onclick="startTraining()" style="padding: 10px 20px; font-size: 20px;">▶️ Start Training</button>
         <div id="status" style="margin-top: 30px;"></div>
@@ -25,7 +25,7 @@ if start:
     </div>
 
     <script>
-        const words = {word_list};
+        const words = JSON.parse("[\\"{'\\",\\"'.join(words)}\\"]");
         const minDelay = {min_delay} * 1000;
         const maxDelay = {max_delay} * 1000;
         const countdownTime = {countdown};
@@ -53,4 +53,18 @@ if start:
 
         async function loop() {{
             while (running) {{
-                const delay = Math.rando
+                const delay = Math.random() * (maxDelay - minDelay) + minDelay;
+                await new Promise(r => setTimeout(r, delay));
+
+                for (let i = countdownTime; i > 0; i--) {{
+                    if (!running) return;
+                    document.getElementById("countdown").innerText = "⏳ Get ready: " + i;
+                    document.getElementById("word").innerText = "";
+                    await new Promise(r => setTimeout(r, 1000));
+                }}
+
+                const word = words[Math.floor(Math.random() * words.length)];
+                if (!running) return;
+                document.getElementById("countdown").innerText = "";
+                document.getElementById("word").innerText = "🔊 " + word;
+                s
