@@ -4,15 +4,22 @@ import streamlit.components.v1 as components
 st.set_page_config(page_title="Duty Belt Trainer", layout="centered", initial_sidebar_state="collapsed")
 st.title("🦺 Duty Belt Trainer")
 
-with st.form("settings_form"):
-    words_input = st.text_input("Enter words (comma-separated):", "Gun, Taser, Flashlight, Handcuffs, OC Spray, Baton")
-    min_delay = st.slider("Min delay (seconds)", 1, 10, 1)
-    max_delay = st.slider("Max delay (seconds)", min_delay, 10, 4)
-    countdown = st.slider("Countdown seconds before word", 1, 10, 3)
-    fullscreen = st.checkbox("Enable Fullscreen Mode", value=False)
-    start = st.form_submit_button("Start Training")
+# Use a container to hold the options form so we can hide it later
+options_container = st.container()
+
+with options_container:
+    with st.form("settings_form"):
+        words_input = st.text_input("Enter words (comma-separated):", "Gun, Taser, Flashlight, Handcuffs, OC Spray, Baton")
+        min_delay = st.slider("Min delay (seconds)", 1, 10, 1)
+        max_delay = st.slider("Max delay (seconds)", min_delay, 10, 4)
+        countdown = st.slider("Countdown seconds before word", 1, 10, 3)
+        fullscreen = st.checkbox("Enable Fullscreen Mode", value=False)
+        start = st.form_submit_button("Start Training")
 
 if start:
+    # Hide the options container when training starts
+    options_container.empty()
+
     words = [w.strip() for w in words_input.split(",") if w.strip()]
     if not words:
         st.error("Please enter at least one word.")
