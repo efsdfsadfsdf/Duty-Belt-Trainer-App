@@ -4,7 +4,6 @@ import streamlit.components.v1 as components
 st.set_page_config(page_title="Duty Belt Trainer", layout="centered", initial_sidebar_state="collapsed")
 st.title("🦺 Duty Belt Trainer")
 
-# Use a container to hold the options form so we can hide it later
 options_container = st.container()
 
 with options_container:
@@ -14,10 +13,10 @@ with options_container:
         max_delay = st.slider("Max delay (seconds)", min_delay, 10, 4)
         countdown = st.slider("Countdown seconds before word", 1, 10, 3)
         fullscreen = st.checkbox("Enable Fullscreen Mode", value=False)
-        start = st.form_submit_button("Start Training")
+        start_training = st.form_submit_button("Start Training")
 
-if start:
-    # Hide the options container when training starts
+if start_training:
+    # Hide the options form immediately
     options_container.empty()
 
     words = [w.strip() for w in words_input.split(",") if w.strip()]
@@ -75,9 +74,10 @@ if start:
             }}
         </style>
         <div>
-            <button id="startBtn">▶️ Start Training</button>
-            <button id="stopBtn" style="display:none;">⏹ Stop</button>
-            <div id="status" style="margin-top: 1rem; font-size: 1.5rem;"></div>
+            <!-- Hide start button by default because training already started -->
+            <button id="startBtn" style="display:none;">▶️ Start Training</button>
+            <button id="stopBtn">⏹ Stop</button>
+            <div id="status" style="margin-top: 1rem; font-size: 1.5rem;">🔊 Training started...</div>
             <div id="countdown"></div>
             <div id="word"></div>
         </div>
@@ -88,7 +88,7 @@ if start:
             const maxDelay = {max_delay} * 1000;
             const countdownTime = {countdown};
 
-            let running = false;
+            let running = true;
             let speechSynthesisUtterance;
 
             {fullscreen_js}
@@ -125,15 +125,6 @@ if start:
             const stopBtn = document.getElementById("stopBtn");
             const status = document.getElementById("status");
 
-            startBtn.onclick = () => {{
-                running = true;
-                status.textContent = "🔊 Training started...";
-                startBtn.style.display = "none";
-                stopBtn.style.display = "inline-block";
-                { "toggleFullscreen();" if fullscreen else "" }
-                trainingLoop();
-            }};
-
             stopBtn.onclick = () => {{
                 running = false;
                 speechSynthesis.cancel();
@@ -146,5 +137,10 @@ if start:
                     document.exitFullscreen();
                 }}
             }};
+
+            { "toggleFullscreen();" if fullscreen else "" }
+
+            // Start the training loop immediately
+            trainingLoop();
         </script>
         """, height=500)
