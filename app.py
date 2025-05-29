@@ -123,3 +123,38 @@ if start_training:
 
             async function trainingLoop() {{
                 while (running) {{
+                    const delay = Math.random() * (maxDelay - minDelay) + minDelay;
+                    await new Promise(r => setTimeout(r, delay));
+
+                    for (let i = countdownTime; i > 0; i--) {{
+                        if (!running) return;
+                        document.getElementById("countdown").textContent = i;
+                        document.getElementById("word").textContent = "";
+                        await new Promise(r => setTimeout(r, 1000));
+                    }}
+
+                    if (!running) return;
+                    const word = words[Math.floor(Math.random() * words.length)];
+                    document.getElementById("countdown").textContent = "";
+                    document.getElementById("word").textContent = word;
+                    speakWord(word);
+                }}
+            }}
+
+            const stopBtn = document.getElementById("stopBtn");
+            const status = document.getElementById("status");
+
+            stopBtn.onclick = () => {{
+                running = false;
+                speechSynthesis.cancel();
+                status.textContent = "⏹ Training stopped.";
+                document.getElementById("countdown").textContent = "";
+                document.getElementById("word").textContent = "";
+                if (document.fullscreenElement) {{
+                    document.exitFullscreen();
+                }}
+            }};
+
+            trainingLoop();
+        </script>
+        """, height=700)
