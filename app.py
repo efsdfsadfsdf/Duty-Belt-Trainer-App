@@ -84,17 +84,18 @@ else:
             }}
             #restart {{
                 position: fixed;
-                bottom: 30px;
-                font-size: 1.5em;
+                bottom: 20px;
                 background: #ff4444;
                 color: white;
-                padding: 0.5em 1.2em;
+                font-size: 1.5em;
+                padding: 10px 20px;
                 border: none;
-                border-radius: 8px;
+                border-radius: 10px;
                 cursor: pointer;
-                z-index: 9999;
+                z-index: 1000;
             }}
         </style>
+
         <div id="status">🔊 Training started...</div>
         <div id="countdown"></div>
         <div id="word"></div>
@@ -140,16 +141,9 @@ else:
                 }}
             }}
 
-            document.getElementById("restart").onclick = () => {{
-                running = false;
-                speechSynthesis.cancel();
-                if (document.fullscreenElement) {{
-                    document.exitFullscreen();
-                }}
-                setTimeout(() => {{
-                    window.location.reload();
-                }}, 300);
-            }};
+            document.getElementById("restart").addEventListener("click", () => {{
+                window.location.reload();
+            }});
 
             trainingLoop();
         </script>
