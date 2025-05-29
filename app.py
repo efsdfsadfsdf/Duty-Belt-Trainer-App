@@ -2,36 +2,37 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 st.set_page_config(layout="centered")
-st.title("Duty Belt Trainer 🔊 (iOS-Friendly Continuous Mode)")
+st.title("Duty Belt Trainer 🔊 (iOS Continuous)")
 
-# Input form
-with st.form("trainer_form"):
+with st.form("settings_form"):
     words_input = st.text_input("Words (comma-separated):", "Gun, Taser, Flashlight, Handcuffs, OC Spray, Baton")
-    min_delay = st.slider("Minimum delay (seconds):", 1, 10, 1)
-    max_delay = st.slider("Maximum delay (seconds):", min_delay, 10, 4)
-    countdown_time = st.slider("Countdown before word (seconds):", 1, 10, 3)
-    submitted = st.form_submit_button("Start Training")
+    min_delay = st.slider("Min delay between words (seconds)", 1, 10, 1)
+    max_delay = st.slider("Max delay between words (seconds)", min_delay, 10, 4)
+    countdown = st.slider("Countdown before word (seconds)", 1, 10, 3)
+    start = st.form_submit_button("Start Training")
 
-if submitted:
+if start:
     words = [w.strip() for w in words_input.split(",") if w.strip()]
-    word_list = str(words).replace("'", '"')  # JSON-safe string for JS
+    word_list = str(words).replace("'", '"')  # safe for JS
+
     components.html(f"""
-    <div style="text-align:center;font-size:24px;padding:20px;">
-        <h3>👂 Training in progress...</h3>
-        <div id="countdown">⏳</div>
-        <div id="word" style="font-size:48px;margin-top:20px;"></div>
-        <button onclick="stopTraining()" style="margin-top:30px;font-size:18px;padding:10px 20px;">⏹ Stop</button>
+    <div style="text-align: center; font-size: 24px; padding: 20px;">
+        <button onclick="startTraining()" style="padding: 10px 20px; font-size: 20px;">▶️ Start Training</button>
+        <div id="status" style="margin-top: 30px;"></div>
+        <div id="countdown" style="font-size: 32px; color: gray;"></div>
+        <div id="word" style="font-size: 48px; margin-top: 20px;"></div>
+        <button onclick="stopTraining()" style="margin-top: 40px; font-size: 18px;">⏹ Stop</button>
     </div>
 
     <script>
         const words = {word_list};
         const minDelay = {min_delay} * 1000;
         const maxDelay = {max_delay} * 1000;
-        const countdownSeconds = {countdown_time};
+        const countdownTime = {countdown};
 
-        let running = true;
+        let running = false;
 
-        function speak(text) {{
+        function speakWord(text) {{
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'en-US';
             msg.rate = 1.0;
@@ -41,27 +42,15 @@ if submitted:
 
         function stopTraining() {{
             running = false;
+            document.getElementById("status").innerText = "⏹ Stopped";
         }}
 
-        async function startLoop() {{
+        function startTraining() {{
+            running = true;
+            document.getElementById("status").innerText = "🔊 Training...";
+            loop();
+        }}
+
+        async function loop() {{
             while (running) {{
-                const delay = Math.random() * (maxDelay - minDelay) + minDelay;
-                await new Promise(res => setTimeout(res, delay));
-
-                for (let i = countdownSeconds; i > 0; i--) {{
-                    if (!running) return;
-                    document.getElementById("countdown").innerText = "⏳ Get ready: " + i;
-                    document.getElementById("word").innerText = "";
-                    await new Promise(res => setTimeout(res, 1000));
-                }}
-
-                const word = words[Math.floor(Math.random() * words.length)];
-                document.getElementById("countdown").innerText = "";
-                document.getElementById("word").innerText = "🔊 " + word;
-                speak(word);
-            }}
-        }}
-
-        startLoop();
-    </script>
-    """, height=400)
+                const delay = Math.rando
