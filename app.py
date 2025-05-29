@@ -2,8 +2,9 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 st.set_page_config(layout="centered")
-st.title("Duty Belt Trainer 🔊 (iOS Continuous)")
+st.title("Duty Belt Trainer 🔊 (iOS Compatible)")
 
+# Form to get user input
 with st.form("settings_form"):
     words_input = st.text_input("Words (comma-separated):", "Gun, Taser, Flashlight, Handcuffs, OC Spray, Baton")
     min_delay = st.slider("Min delay between words (seconds)", 1, 10, 1)
@@ -11,11 +12,13 @@ with st.form("settings_form"):
     countdown = st.slider("Countdown before word (seconds)", 1, 10, 3)
     start = st.form_submit_button("Start Training")
 
+# On submit, inject HTML + JS
 if start:
+    # Convert input string into a JavaScript-safe list
     words = [w.strip() for w in words_input.split(",") if w.strip()]
-    word_list = str(words).replace("'", "\\\"")  # escape quotes
+    word_list_js = "[" + ", ".join([f'"{w}"' for w in words]) + "]"
 
-    components.html(f'''
+    components.html(f"""
     <div style="text-align: center; font-size: 24px; padding: 20px;">
         <button onclick="startTraining()" style="padding: 10px 20px; font-size: 20px;">▶️ Start Training</button>
         <div id="status" style="margin-top: 30px;"></div>
@@ -25,7 +28,7 @@ if start:
     </div>
 
     <script>
-        const words = JSON.parse("[\\"{'\\",\\"'.join(words)}\\"]");
+        const words = {word_list_js};
         const minDelay = {min_delay} * 1000;
         const maxDelay = {max_delay} * 1000;
         const countdownTime = {countdown};
@@ -67,4 +70,8 @@ if start:
                 if (!running) return;
                 document.getElementById("countdown").innerText = "";
                 document.getElementById("word").innerText = "🔊 " + word;
-                s
+                speakWord(word);
+            }}
+        }}
+    </script>
+    """, height=600)
